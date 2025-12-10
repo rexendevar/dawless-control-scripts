@@ -7,7 +7,7 @@ The scripts I have here in their current form allow me to:
 - Save and load full Fluidsynth and Pipewire configs
 
 # Setup
-All these scripts should be placed into a single folder. Within that folder there must be a file called `current.sav`, a subfolder called `saves`, and another subfolder called `fonts` which contains `FluidR3_GM.sf2` (you can find this file in `/usr/share/sounds/sf2/`), along with any other soundfonts you wish to load.
+All these scripts should be placed into a single folder. Within that folder there must be a file called `current.sav`, a subfolder called `saves`, and another subfolder called `fonts` which contains `FluidR3_GM.sf2` (you can find this file in `/usr/share/sounds/sf2/`), along with any other soundfonts you wish to load. Most changes you make will be saved back to `current.sav`.
 
 I recommend creating aliases for all of these scripts like so:
 ```
