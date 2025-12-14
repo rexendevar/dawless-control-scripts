@@ -7,7 +7,7 @@ os.chdir(os.path.dirname(os.path.realpath(__file__))) # set cwd to where the scr
 def save(mutes) -> None:
     other_data = []
     try:
-        with open("current.txt") as save_file:
+        with open("current.sav") as save_file:
             save_data = save_file.readlines()
     except:
         pass
@@ -17,7 +17,7 @@ def save(mutes) -> None:
                 other_data.append(line)
     save_data = other_data
     save_data.append('mutes ' + ' '.join(str(i) for i in mutes)+'\n')
-    with open("current.txt", 'w') as save_file:
+    with open("current.sav", 'w') as save_file:
         save_file.writelines(save_data)
 
 
@@ -32,7 +32,7 @@ def multi_mute(*muted_channels: int) -> None:
 if __name__ == '__main__':
     muted_channels = []
     try:
-        with open("current.txt") as current:
+        with open("current.sav") as current:
             line = "primed"
             while not line.startswith("mutes") and line != "":
                 line = current.readline()

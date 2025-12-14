@@ -98,9 +98,12 @@ def disconnect_all():
 
 
 def link_prescribed(src: str, snk: str):
-    output = subprocess.check_output(f'pw-link {src} {snk}', shell=True)
-    if output != b'':
-        print(output.decode())
+    try:
+        output = subprocess.check_output(f'pw-link {src} {snk}', shell=True)
+        if output != b'':
+            print(output.decode())
+    except subprocess.CalledProcessError:
+        print(f"Cannot link {src} to {snk}")
     else:
         print(f"Linked {src} to {snk}")
 

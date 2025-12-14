@@ -2,7 +2,7 @@ import shutil
 import sys
 import os
 os.chdir(os.path.dirname(os.path.realpath(__file__))) # set cwd to where the script is
-import midiroute, fs_instruments, fs_mutes, fs_fonts, seer_of_wires, audioroute
+import midiroute, fs_instruments, fs_mutes, fs_fonts, seer_of_wires, audioroute, sqt_mutes
 
 def load(file: str) -> None:
     line = "primed"
@@ -10,12 +10,14 @@ def load(file: str) -> None:
     if seer_of_wires.fs():
         fs_instruments.reset_insts()
         fs_mutes.multi_mute()
+    sqt_mutes.ensure()
     with open(file) as save_file:
         while line != "":
             line = save_file.readline()
             if line.startswith("font") and seer_of_wires.fs():
                 path = line.split(' ',2)[2].strip()
-                fs_fonts.load_font(path, False)
+                print(f"Not loading {path} due to the caveats")
+                # fs_fonts.load_font(path, False)
             if line.startswith("inst") and seer_of_wires.fs():
                 chan, fnt, bnk, prg = line.split(' ',1)[1].strip().split()
                 fs_instruments.set_inst(int(chan), int(bnk), int(prg), int(fnt))
@@ -24,6 +26,8 @@ def load(file: str) -> None:
                 for n, i in enumerate(muted_channels):
                     muted_channels[n] = int(i)
                 fs_mutes.multi_mute(*muted_channels)
+            elif line.startswith("sqtmutes"):
+                sqt_mutes.multi_mute( * list(int(i) for i in line.strip().split(' ')[1:]) )
             elif line.startswith("route"):
                 args = line.strip().split(' ~ ')[1:]
                 midiroute.route(args[0],args[1],"connect")
