@@ -18,6 +18,9 @@ alias font='/usr/bin/python3 "FULL_PATH_TO_FOLDER/fs_fonts.py"'
 alias cfs="FULL_PATH_TO_FOLDER/check_fluidsynth.sh"
 alias fst="FULL_PATH_TO_FOLDER/fsterm.sh"
 
+alias muter="FULL_PATH_TO_FOLDER/toggle_sqtmuter.sh"
+alias smut='/usr/bin/python3 "FULL_PATH_TO_FOLDER/sqt_mutes.py"'
+
 alias sst='/usr/bin/python3 "FULL_PATH_TO_FOLDER/save_set.py"'
 alias lst='/usr/bin/python3 "FULL_PATH_TO_FOLDER/load_set.py"'
 alias rl='/usr/bin/python3 "FULL_PATH_TO_FOLDER/reload_current.py"'
@@ -60,6 +63,16 @@ alias 1024="FULL_PATH_TO_FOLDER/1024.sh"
 
 `fsterm.sh`:
 - gets you to the fluidsynth terminal. it's normal to not see any output, just type help and go from there
+
+### Seqtrak muter scripts
+The Seqtrak muter creates a MIDI input and output that will pass through all MIDI messages except for select muted channels. Used for my Yamaha Seqtrak which does not have incoming MIDI mute per channel on its own.
+
+`toggle_sqtmuter.sh`:
+- runs or stops the muter script
+
+`sqt_mutes.py`:
+- interfacing with the muter script
+- uses an evil evil vile form of IPC done by writing and reading actual files (not pipes) in the same directory
 
 ### Config scripts
 `save_set.py`:
