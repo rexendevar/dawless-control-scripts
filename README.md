@@ -65,7 +65,7 @@ alias 1024="FULL_PATH_TO_FOLDER/1024.sh"
 - gets you to the fluidsynth terminal. it's normal to not see any output, just type help and go from there
 
 ### Seqtrak muter scripts
-The Seqtrak muter creates a MIDI input and output that will pass through all MIDI messages except for select muted channels. Used for my Yamaha Seqtrak which does not have incoming MIDI mute per channel on its own.
+The Seqtrak muter creates a MIDI input and output that will pass through all MIDI messages except for select muted channels. Used for piping MIDI to my Yamaha Seqtrak which does not have incoming MIDI mute per channel on its own; this way one MIDI source can be used to control multiple sinks without issues. The muter script itself is essentially a daemon.
 
 `toggle_sqtmuter.sh`:
 - runs or stops the muter script
