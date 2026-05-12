@@ -6,31 +6,61 @@ The scripts I have here in their current form allow me to:
 - Freely route audio and MIDI pipes via pipewire
 - Save and load full Fluidsynth and Pipewire configs
 
+# Major update (May '26)
+It's been months since I touched this repo but I might as well upload everything I have. The main changes are as follows:
+- The Pi is here
+- I'm using Reaper for audio multitracking (see ReaPad and Turing-Complete on ReaPack for how I control Reaper itself)
+- Switched from using the wifi hotspot for script control to controlling everything on-device using a screen and a clicky encoder
+- Code quality and organization remains bad
+- LoChord won't run anymore (I have a guitar + use the controller for Reaper so it's no longer needed)
+
+Run `curses_launcher.py` and navigate using L/R arrows plus Enter to get everything done. `gpio-encoder.py` just binds the encoder plus a couple bonus buttons to the main things.
+
+Beyond this point almost all documentation is 5 months outdated.
+
 # Setup
 All these scripts should be placed into a single folder. Within that folder there must be a file called `current.sav`, a subfolder called `saves`, and another subfolder called `fonts` which contains `FluidR3_GM.sf2` (you can find this file in `/usr/share/sounds/sf2/`), along with any other soundfonts you wish to load. Most changes you make will be saved back to `current.sav`.
 
 I recommend creating aliases for all of these scripts like so:
 ```
-alias fs="FULL_PATH_TO_FOLDER/toggle_fluidsynth.sh"
-alias mut='/usr/bin/python3 "FULL_PATH_TO_FOLDER/fs_mutes.py"'
-alias inst='/usr/bin/python3 "FULL_PATH_TO_FOLDER/fs_instruments.py"'
-alias font='/usr/bin/python3 "FULL_PATH_TO_FOLDER/fs_fonts.py"'
-alias cfs="FULL_PATH_TO_FOLDER/check_fluidsynth.sh"
-alias fst="FULL_PATH_TO_FOLDER/fsterm.sh"
+alias curses='/path/to/python3 "/path2/to/curses_launcher.py"'
+alias lc='/path/to/python3 "/home/flynn/dawless/lochord/lochord.py"'
 
-alias muter="FULL_PATH_TO_FOLDER/toggle_sqtmuter.sh"
-alias smut='/usr/bin/python3 "FULL_PATH_TO_FOLDER/sqt_mutes.py"'
+alias dm='/path2/to/daemons.sh'
+alias log='/path2/to/dlog.sh'
+alias slog='cat /home/flynn/logs/startup.log'
+alias rlog='tail -f /home/flynn/logs/reaper.log'
 
-alias sst='/usr/bin/python3 "FULL_PATH_TO_FOLDER/save_set.py"'
-alias lst='/usr/bin/python3 "FULL_PATH_TO_FOLDER/load_set.py"'
-alias rl='/usr/bin/python3 "FULL_PATH_TO_FOLDER/reload_current.py"'
+alias fs="/path2/to/toggle_fluidsynth.sh"
+alias mut='/path/to/python3 "/path2/to/fs_mutes.py"'
+alias inst='/path/to/python3 "/path2/to/fs_instruments.py"'
+alias font='/path/to/python3 "/path2/to/fs_fonts.py"'
+alias cfs="/path2/to/check_fluidsynth.sh"
+alias fst="/path2/to/fsterm.sh"
 
-alias rt='/usr/bin/python3 "FULL_PATH_TO_FOLDER/midiroute.py"'
-alias art='/usr/bin/python3 "FULL_PATH_TO_FOLDER/audioroute.py"'
-alias pan='/usr/bin/python3 "FULL_PATH_TO_FOLDER/panic.py"'
+alias muter="/path2/to/toggle_sqtmuter.sh"
+alias smut='/path/to/python3 "/path2/to/sqt_mutes.py"'
+alias syxt='/path/to/python3 "/path2/to/syx_translator.py"'
 
-alias 128="FULL_PATH_TO_FOLDER/128.sh"
-alias 1024="FULL_PATH_TO_FOLDER/1024.sh"
+alias sst='/path/to/python3 "/path2/to/save_set.py"'
+alias lst='/path/to/python3 "/path2/to/load_set.py"'
+alias rl='/path/to/python3 "/path2/to/reload_current.py"'
+alias clean='/path/to/python3 "/path2/to/clean.py"'
+
+alias rt='/path/to/python3 "/path2/to/midiroute.py"'
+alias art='/path/to/python3 "/path2/to/audioroute.py"'
+alias pan='/path/to/python3 "/path2/to/panic.py"'
+
+alias 128="/path2/to/128.sh"
+alias 1024="/path2/to/1024.sh"
+
+alias st='dm & muter & fs'
+
+alias reaper='pw-jack /home/flynn/opt/REAPER/reaper'
+alias tr='/path2/to/toggle_reaper.sh'
+alias reagui='rm /home/flynn/opt/REAPER/libSwell.so && cp /home/flynn/opt/REAPER/libSwell-gui.so /home/flynn/opt/REAPER/libSwell.so'
+alias reatui='rm /home/flynn/opt/REAPER/libSwell.so && cp /home/flynn/opt/REAPER/libSwell-tui.so /home/flynn/opt/REAPER/libSwell.so'
+
 ```
 
 # Caveats (will be fixed eventually but i might not update te repo)
