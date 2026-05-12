@@ -6,7 +6,11 @@ import fs_fonts
 
 
 def get_inst_list(basic: bool = False, fnt: int=1) -> list[str]|dict[str,list[str]]:
-    instruments = subprocess.check_output(f"echo 'inst {fnt}' | nc -q 0 localhost {PORT}", shell=True).decode().split('\n')
+    try:
+        instruments = subprocess.check_output(f"echo 'inst {fnt}' | nc -q 0 localhost {PORT}", shell=True).decode().split('\n')
+    except subprocess.CalledProcessError:
+        print("INST: Error")
+        return
     if basic:
         return instruments
     insts: dict[str,list[str]] = {}
@@ -80,7 +84,11 @@ def select(instrument: str):
     insts: dict[str,list[str]] = get_inst_list(False, font_id) # type: ignore
     print(f"Switching to {instrument}")
     sel = insts[instrument]
-    output = subprocess.check_output(f"echo 'select {channel-1} {font_id} {sel[0]} {sel[1]}' | nc -q 0 localhost {PORT}", shell=True)
+    try:
+        output = subprocess.check_output(f"echo 'select {channel-1} {font_id} {sel[0]} {sel[1]}' | nc -q 0 localhost {PORT}", shell=True)
+    except subprocess.CalledProcessError:
+        print("INST: Error")
+        return
     if output != b'':
         print( output )
     save_inst(sel)
@@ -151,7 +159,11 @@ def save_font(sel: int) -> None:
 
 def reset_insts() -> None:
     for channel in range(16):
-        subprocess.check_output(f"echo 'select {channel} 1 000 000' | nc -q 0 localhost {PORT}", shell=True)
+        try:
+            subprocess.check_output(f"echo 'select {channel} 1 000 000' | nc -q 0 localhost {PORT}", shell=True)
+        except subprocess.CalledProcessError:
+            print("INST: Error")
+            return
 
 
 def find_name(bnk: int, prg: int, fnt: int) -> str:
@@ -167,13 +179,19 @@ def find_name(bnk: int, prg: int, fnt: int) -> str:
 
 
 def set_inst(channel: int, bnk: int, prg: int, fnt: int) -> None:
-    output = subprocess.check_output(f"echo 'select {channel-1} {fnt} {bnk} {prg}' | nc -q 0 localhost {PORT}", shell=True)
-    if output != b'':
-        print( output )
-    print(f"Set channel {channel} to {find_name(bnk, prg, fnt)}")
+    try:
+        output = subprocess.check_output(f"echo 'select {channel-1} {fnt} {bnk} {prg}' | nc -q 0 localhost {PORT}", shell=True)
+        if output != b'':
+            print( output )
+        print(f"Set channel {channel} to {find_name(bnk, prg, fnt)}")
+    except subprocess.CalledProcessError:
+        print("INST: Error")
+        return
+
 
 
 if __name__ == '__main__':
+    columns = 3
     try:
         channel = int(input("MIDI channel 1-16: "))
     except:
@@ -188,10 +206,18 @@ if __name__ == '__main__':
     insts = get_inst_list(False, font_id)
     search = input("Enter instrument: ")
     options = []
+
+    display = []
+
+    
     if not search:
         for n, inst in enumerate(insts):
             options.append(inst)
-            print(n,inst)
+            #print(n,inst)
+            display.append(f"{n} {inst}")
+        for i in range(0, len(display), columns):
+            row = display[i:i+columns]
+            print(''.join(f"{item:<25}" for item in row))
     else:
         #alias a bunch of em
         count = 0

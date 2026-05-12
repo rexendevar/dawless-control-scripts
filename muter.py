@@ -16,8 +16,8 @@ def print(out:str):
 try:
     import rtmidi
 except ImportError:
-    print("Error: python-rtmidi not installed")
-    print("Install with: pip install python-rtmidi")
+    print("\tError: python-rtmidi not installed")
+    print("\tInstall with: pip install python-rtmidi")
     sys.exit(1)
 
 
@@ -30,6 +30,7 @@ class MIDIChannelMuter:
         # Open virtual ports
         self.midi_in.open_virtual_port(f"{client_name}_input")
         self.midi_out.open_virtual_port(f"{client_name}_output")
+        self.midi_in.ignore_types(sysex=False, timing=False)
 
         self.muted_channels: Set[int] = set()
         self.running = True
@@ -69,7 +70,7 @@ class MIDIChannelMuter:
                 self.muted_channels.add(channel)
                 print(f"Muted channel {channel + 1} (0x{channel:X})")
             else:
-                print(f"Invalid channel: {channel}")
+                print(f"\tInvalid channel: {channel}")
 
     def unmute_channel(self, *channels: int):
         """Unmute a MIDI channel (0-15)"""
@@ -78,7 +79,7 @@ class MIDIChannelMuter:
                 self.muted_channels.discard(channel)
                 print(f"Unmuted channel {channel + 1} (0x{channel:X})")
             else:
-                print(f"Invalid channel: {channel}")
+                print(f"\tInvalid channel: {channel}")
 
     def toggle_mute(self, *channels:int):
         """toggle mute for MIDI channels (0-15)"""
@@ -94,7 +95,7 @@ class MIDIChannelMuter:
                     muted.append(channel+1)
                     self.muted_channels.add(channel)
             else:
-                print(f"Invalid channel: {channel}")
+                print(f"\tInvalid channel: {channel}")
         print(f'Muted {muted}, unmuted {unmuted}')
 
     def unmute_all(self):
@@ -155,7 +156,7 @@ class MIDIChannelMuter:
                 channels = list( int(part)-1 for part in parts[1:]) # Convert from 1-16 to 0-15
                 self.mute_channel(*channels)
             except ValueError:
-                print(f"Invalid channel number: {parts[1]}")
+                print(f"\tInvalid channel number: {parts[1]}")
 
         elif command == 'u' or command == 'unmute':
             if len(parts) < 2:
@@ -165,7 +166,7 @@ class MIDIChannelMuter:
                 channels = list( int(part)-1 for part in parts[1:]) # Convert from 1-16 to 0-15
                 self.unmute_channel(*channels)
             except ValueError:
-                print(f"Invalid channel number: {parts[1]}")
+                print(f"\tInvalid channel number: {parts[1]}")
 
         elif command == 't' or command == 'toggle':
             if len(parts) < 2:
@@ -175,7 +176,7 @@ class MIDIChannelMuter:
                 channels = list( int(part)-1 for part in parts[1:]) # Convert from 1-16 to 0-15
                 self.toggle_mute(*channels)
             except ValueError:
-                print(f"Invalid channel number: {parts[1]}")
+                print(f"\tInvalid channel number: {parts[1]}")
 
         else:
             print(f"Unknown command: {command}")

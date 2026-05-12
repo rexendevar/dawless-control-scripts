@@ -4,6 +4,12 @@ import os
 os.chdir(os.path.dirname(os.path.realpath(__file__))) # set cwd to where the script is
 import seer_of_wires as sor
 
+import curses
+from curses import wrapper
+def concat(*args, sep=' '):
+    return sep.join(str(arg) for arg in args)
+
+
 def show_wires():
     nodes = sor.read_dump()
     for id in nodes:
@@ -66,16 +72,19 @@ def save2(nodes: dict, connect: bool, src_id: int, snk_id: int, srcport: int = 0
 
 def show_wires2():
     nodes = sor.read_dump()
+    wires = []
+    y = 0
     for id in nodes:
         node = nodes[id]
         if node['source_sink'] in ['SRC','S&S']:
             for nodeid in node['connections']:
-                print(
+                wires.append( concat(
                     node['name'],
                     '-->',
                     nodes[nodeid]['name']
-                )
-    return nodes
+                ))
+                y += 1
+    return nodes, wires
 
 
 def connect(src: int, snk: int) -> bool:
@@ -99,12 +108,11 @@ def disconnect_all():
 
 def link_prescribed(src: str, snk: str):
     try:
-        subprocess.run(f'pw-link {src} {snk}', check=True, capture_output=True, shell=True)
-    except subprocess.CalledProcessError as e:
-        if "File exists" in e.stderr.decode():
-            print(f"{src} and {snk} already connected")
-        else:
-            print(f"\tCannot link {src} to {snk}")
+        output = subprocess.check_output(f'pw-link {src} {snk}', shell=True)
+        if output != b'':
+            print(output.decode())
+    except subprocess.CalledProcessError:
+        print(f"\tCannot link {src} to {snk}")
     else:
         print(f"Linked {src} to {snk}")
 
@@ -126,9 +134,158 @@ def thex(number: str) -> int:
         case _:
             return int(number)
 
-def link_nodes():
-    nodes = show_wires2()
-    print()
+
+def select_loop(stdscr, entries: list, stage: str='', return_index: bool=False):
+    curses.start_color()
+    bw = curses.color_pair(0) # white on black if we need it
+    curses.curs_set(0)
+    def display(*args, sep=' '):
+        stdscr.addstr( 1,0, concat( *args, sep ) )
+
+    i = 1 # switch to specific selection and while loop
+    key = "primed"
+
+    while True:
+        run = False
+        stdscr.clear()
+        stdscr.addstr( 12, 32, "L", curses.A_REVERSE)
+        stdscr.addstr( 0,0, f"Main > Rt > Aud{stage}")
+        if key == "primed": # interpret key inputs
+            pass
+        elif key == curses.KEY_RIGHT:
+            i += 1
+        elif key == curses.KEY_LEFT:
+            i -= 1
+        elif key == ord('\n'):
+            run = True
+
+        if i < 0: # loop
+            i = len(entries)-1
+        if i >= len(entries):
+            i = 0
+
+        display(entries[i])
+        if run: # wrap run action in conditional
+            if return_index:
+                return i
+            else:
+                return entries[i]
+
+        stdscr.refresh()
+        key = stdscr.getch() #refresh in loop, don't handle end feedback separately
+
+
+def text_input(stdscr, position: tuple, opts: list, stage: str='') -> str:
+    y, x = position[0], position[1]
+    final_text = []
+    cycle = ["Ent", *opts, "Esc","<X"]
+
+    def choose_char():
+        i = 0 # switch to specific selection and while loop
+        key = "primed"
+        while True:
+            run = False
+            #stdscr.clear()
+            stdscr.addstr( 12, 32, "L", curses.A_REVERSE)
+            stdscr.addstr( 0,0, f"Main > Rt > Aud{stage}")
+            if key == "primed": # interpret key inputs
+                pass
+            elif key == curses.KEY_RIGHT:
+                i += 1
+            elif key == curses.KEY_LEFT:
+                i -= 1
+            elif key == ord('\n'):
+                run = True
+
+            if i < 0: # loop
+                i = len(cycle)-1
+            if i >= len(cycle):
+                i = 0
+
+            stdscr.addstr(y,x, '   ')
+            stdscr.addstr(y,x, cycle[i], curses.A_REVERSE)
+            if run: # wrap run action in conditional
+                return cycle[i]
+
+            stdscr.refresh()
+            key = stdscr.getch() #refresh in loop, don't handle end feedback separately
+
+    next_char = choose_char()
+    while not next_char in ["Esc", "Ent"]:
+        if next_char == "<X":
+            try:
+                final_text.pop(-1)
+                x -= 1
+            except:
+                pass
+        else:
+            final_text.append(next_char)
+            x += 1
+        stdscr.addstr(*position, ''.join(final_text))
+        next_char = choose_char()
+    if next_char == "Ent":
+        return ''.join(final_text)
+    else:
+        return ''
+
+def binary_mask(stdscr, position: tuple, number: int) -> str:
+    flags = ["0" * number]
+    opts = ["Back ",*flags," Ent"]
+    selected = []
+    sel = 0
+    key = "primed"
+    while True:
+        run = False
+        #stdscr.clear()
+        if key == "primed": # interpret key inputs
+            pass
+        elif key == curses.KEY_RIGHT:
+            sel += 1
+        elif key == curses.KEY_LEFT:
+            sel -= 1
+        elif key == ord('\n'):
+            run = True
+
+        if sel < 0: # loop
+            sel = len(opts)-1
+        if sel >= len(opts):
+            sel = 0
+
+        stdscr.addstr(position[0], position[1], "")
+        for n, opt in enumerate(opts):
+            if opt in selected:
+                attr = curses.A_BOLD
+            elif opt in flags:
+                attr = curses.A_DIM
+            else:
+                attr = curses.A_NORMAL
+
+            col = curses.A_REVERSE * int(sel==n)
+
+            stdscr.addstr(opt, attr|col)
+
+        if run:
+            if sel == 0:
+                return False # todo handle cancel
+            elif sel == len(opts)-1:
+                return save, ''.join(selected)
+            else:
+                opts[sel] = str(int(opts[sel]=="0"))
+
+
+
+
+def cursable(stdscr):
+    nodes, wires = show_wires2()
+
+    opts = ["Back","Active wires:",*wires,"Next"]
+    sel = select_loop(stdscr, opts)
+    while sel not in ["Back","Next"]:
+        sel = select_loop(stdscr, opts)
+    if sel == "Back":
+        return
+
+    sources = []
     tally = 1
     src_ids = []
     src_chans = []
@@ -141,21 +298,24 @@ def link_nodes():
             src_ids.append(id)
             src_chans.append(chans)
             if chans>1:
-                print(f'{tally}  ({chans}) {node["name"]}')
+                sources.append(f'{tally}  ({chans}) {node["name"]}')
             else:
                 for port in node['ports']:
-                    print(f'{tally}      {node["name"]}.{node["ports"][port]["name"] }')
+                    if node['ports'][port]['direction'] == 'out':
+                        sources.append(f'{tally}      {node["name"]}.{node["ports"][port]["name"] }')
             tally += 1
 
-    src_sel = -1
-    while not (1<= src_sel <= tally):
-        try:
-            src_sel = int(input("Select source from list: "))
-        except ValueError:
-            src_sel = -1
-    src_id = src_ids[src_sel-1]
-    print()
+    opts = ["Back","Audio sources:",*sources]
+    sel = select_loop(stdscr, opts, " > 1 Src", True)
+    while sel == 1:
+        sel = select_loop(stdscr, opts, " > 1 Src", True)
+    if sel == 0:
+        cursable(stdscr)
+        return
+    src_id = src_ids[sel-2]
 
+
+    sinks = []
     tally = 1
     snk_ids = []
     snk_chans = []
@@ -168,23 +328,31 @@ def link_nodes():
             snk_ids.append(id)
             snk_chans.append(chans)
             if chans>1:
-                print(f'{tally}  ({chans}) {node["name"]}')
+                sinks.append(f'{tally}  ({chans}) {node["name"]}')
             else:
                 for port in node['ports']:
-                    print(f'{tally}      {node["name"]}.{node["ports"][port]["name"] }')
+                    if node['ports'][port]['direction'] == 'in':
+                        sinks.append(f'{tally}      {node["name"]}.{node["ports"][port]["name"] }')
             tally += 1
 
-    snk_sel = -1
-    while not (1<= snk_sel <= tally):
-        try:
-            snk_sel = int(input("Select sink from list: "))
-        except ValueError:
-            snk_sel = -1
-    snk_id = snk_ids[snk_sel-1]
-    print()
+    opts = ["Back","Audio sinks:",*sinks]
+    sel = select_loop(stdscr, opts, " > 2 Snk", True)
+    while sel == 1:
+        sel = select_loop(stdscr, opts, " > 2 Snk", True)
+    if sel == 0:
+        cursable(stdscr)
+        return
+    snk_id = snk_ids[sel-2]
+
+    y = 1
 
 
-    # equal number of channels
+
+
+
+
+
+    # equal number of channels DONE
     if len(nodes[src_id]['ports']) == len(nodes[snk_id]['ports']):
         src = []
         for port in nodes[src_id]['ports']:
@@ -194,22 +362,27 @@ def link_nodes():
             snk.append(port)
         tally = 1
         src = [0]
-        print("Source channels:")
+        #print("Source channels:")
+        stdscr.addstr( y,0, "Source channels:" )
+        y += 1
         for port in nodes[src_id]['ports']:
             if nodes[src_id]['ports'][port]['direction'] == 'out':
-                print(f"{hex(tally)[2:]} {nodes[src_id]['ports'][port]['name']}")
+                stdscr.addstr(y, 0, f"{hex(tally)[2:]} {nodes[src_id]['ports'][port]['name']}")
+                y += 1
                 src.append(port)
                 tally += 1
-        print()
 
+        y+=1
         snk = []
         for port in nodes[snk_id]['ports']:
             if nodes[snk_id]['ports'][port]['direction'] == 'in':
-                print(nodes[snk_id]['ports'][port]['name'])
+                stdscr.addstr(y,0,(nodes[snk_id]['ports'][port]['name']))
                 snk.append(port)
         mask = ''
         while len(mask) != len(snk):
-            mask = input("Enter connection mask (defaults to 123...): ")
+            stdscr.addstr(y,0,"Connection mask (123...):")
+            stdscr.refresh()
+            mask = text_input(stdscr, (y+1, 0), (str(n) for n in range(len(snk)+1)) )
             if not mask:
                 msk = []
                 for n, i in enumerate(snk):
@@ -236,18 +409,26 @@ def link_nodes():
         else:
             print(f"Disconnected {nodes[src_id]['name']} from {nodes[snk_id]['name']}")
 
-    # 1 source port
+
+
+
+
+
+    # 1 source port UNTESTABLE i think
     elif len(nodes[src_id]['ports']) == 1:
         for port in nodes[src_id]['ports']:
             src = port
         snk = []
         for port in nodes[snk_id]['ports']:
             if nodes[snk_id]['ports'][port]['direction'] == 'in':
-                print(nodes[snk_id]['ports'][port]['name'])
+                stdscr.addstr(y, 0, f"{hex(tally)[2:]} {nodes[snk_id]['ports'][port]['name']}")
+                y += 1
                 snk.append(port)
+                tally += 1
         mask = ''
         while len(mask) != len(nodes[snk_id]['ports']):
-            mask = input("Enter binary connection mask (to sink): ")
+            #mask = input("Enter binary connection mask (to sink): ")
+            mask = binary_mask(stdscr, (y+1,0), len(nodes[snk_id]['ports']))
         snk_final = []
         for n, digit in enumerate(mask):
             if digit == '1':
@@ -263,6 +444,12 @@ def link_nodes():
             print(f"Connected {nodes[src_id]['name']} to {nodes[snk_id]['name']}")
         else:
             print(f"Disconnected {nodes[src_id]['name']} from {nodes[snk_id]['name']}")
+
+
+
+
+
+
 
     # 1 sink port
     elif len(nodes[snk_id]['ports']) == 1:
@@ -292,17 +479,26 @@ def link_nodes():
             print(f"Disconnected {nodes[src_id]['name']} from {nodes[snk_id]['name']}")
 
 
+
+
+
+
+
+
     # arbitrary numbers of both
     else:
         tally = 1
         src = [0]
-        print("Source channels:")
+        stdscr.addstr( y,0, "Source channels:" )
+        y += 1
         for port in nodes[src_id]['ports']:
             if nodes[src_id]['ports'][port]['direction'] == 'out':
-                print(f"{hex(tally)[2:]} {nodes[src_id]['ports'][port]['name']}")
+                stdscr.addstr(y,0, f"{hex(tally)[2:]} {nodes[src_id]['ports'][port]['name']}")
+                y += 1
                 src.append(port)
                 tally += 1
         print()
+        
 
         snk = []
         for port in nodes[snk_id]['ports']:
@@ -334,4 +530,4 @@ def link_nodes():
 
 
 if __name__ == '__main__':
-    link_nodes()
+    wrapper(cursable)

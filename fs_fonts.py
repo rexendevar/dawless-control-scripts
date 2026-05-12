@@ -4,7 +4,11 @@ import os
 os.chdir(os.path.dirname(os.path.realpath(__file__))) # set cwd to where the script is
 
 def list_loaded(show: bool):
-    output = subprocess.check_output(f"echo 'fonts' | nc -q 0 localhost {PORT}", shell=True).decode().split('\n')
+    try:
+        output = subprocess.check_output(f"echo 'fonts' | nc -q 0 localhost {PORT}", shell=True).decode().split('\n')
+    except subprocess.CalledProcessError:
+        print("FNT: Error")
+        return
     fonts = []
     for line in output:
         if line == "ID  Name" or line == '':
@@ -47,15 +51,19 @@ def pick_font() -> None:
         save = usable_fonts[ int(input("Load from save slot: "))-1 ]
         #save = ( '/home/spyndling/bigboy4tb/scripts/dawlesspreparation/'+save )
     except ValueError:
-        print("Please use a number out of the list i cant be bothered doing error handling")
-    load_font(save)
+        print("\tPlease use a number out of the list i cant be bothered doing error handling")
+    load_font(save, True)
 
 
 def load_font(path: str, save:bool=False) -> None:
-    output = subprocess.check_output(f"echo 'load \'{path}\'' | nc -q 0 localhost {PORT}", shell=True).decode().split('\n')[0]
-    print(output.replace('loaded SoundFont',path))
-    if save:
-        save_font(path, output)
+    try:
+        output = subprocess.check_output(f"echo 'load \'{path}\'' | nc -q 0 localhost {PORT}", shell=True).decode().split('\n')[0]
+        print(output.replace('loaded SoundFont',path))
+        if save:
+            save_font(path, output)
+    except subprocess.CalledProcessError:
+        print("FNT: Error")
+        return
 
 
 def save_font(path: str, log: str) -> None:
@@ -77,7 +85,7 @@ def save_font(path: str, log: str) -> None:
             current.writelines(fonts)
             current.writelines(others)
     except:
-        print("crashing")
+        print("\tcrashing")
         return
 
 

@@ -22,11 +22,15 @@ def save(mutes) -> None:
 
 
 def multi_mute(*muted_channels: int) -> None:
-    for chan in range(16):
-        subprocess.check_output(f"echo 'cc {chan} 7 127' | nc -q 0 localhost {PORT}", shell=True)
-    for chan in muted_channels:
-        subprocess.check_output(f"echo 'cc {int(chan)-1} 7 0' | nc -q 0 localhost {PORT}", shell=True)
-    print("Muted channels:",muted_channels)
+    try:
+        # ~ for chan in range(16):
+            # ~ subprocess.check_output(f"echo 'cc {chan} 7 127' | nc -q 0 localhost {PORT}", shell=True)
+        for chan in muted_channels:
+            subprocess.check_output(f"echo 'cc {int(chan)-1} 7 0' | nc -q 0 localhost {PORT}", shell=True)
+        print("Muted channels:",muted_channels)
+    except subprocess.CalledProcessError:
+        print("MUT: Error")
+        return
 
 
 if __name__ == '__main__':
@@ -53,7 +57,10 @@ if __name__ == '__main__':
     else:
         channel = int(input("\nMIDI channel 1-16: "))
     val = 127 * int(channel in muted_channels)
-    subprocess.check_output(f"echo 'cc {channel-1} 7 {val}' | nc -q 0 localhost {PORT}", shell=True)
+    try:
+        subprocess.check_output(f"echo 'cc {channel-1} 7 {val}' | nc -q 0 localhost {PORT}", shell=True)
+    except subprocess.CalledProcessError:
+        print("MUT: Error")
     if channel in muted_channels:
         muted_channels.remove(channel)
         print(f"unmuted {channel}")

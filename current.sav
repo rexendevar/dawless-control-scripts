@@ -1,0 +1,40 @@
+font 2 fonts/Alex_GM.sf2
+font 3 fonts/MuseScore_General.sf2
+route ~ SEQTRAK MIDI 1 ~ SyxT_SQT
+route ~ SQTMuter_output ~ SEQTRAK MIDI 1
+route ~ SyxT_SQT ~ SQTMuter_input
+art ~ "FluidSynth:output_FL" ~ "SEQTRAK:playback_FL"
+art ~ "FluidSynth:output_FR" ~ "SEQTRAK:playback_FR"
+route ~ LoChord ~ SQTMuter_input
+route ~ U4MIDI WC MIDI 1 ~ SEQTRAK MIDI 1
+route ~ SyxT_KO2 ~ EP-133 MIDI 1
+route ~ EP-133 MIDI 1 ~ SyxT_KO2
+route ~ U4MIDI WC MIDI 1 ~ EP-133 MIDI 1
+route ~ LoChord ~ EP-133 MIDI 1
+route ~ EP-133 MIDI 1 ~ FLUID Synth
+route ~ EP-133 MIDI 1 ~ U4MIDI WC MIDI 1
+route ~ Keystation 49 MK3(USB MIDI) ~ SQTMuter_input
+route ~ Keystation 49 MK3(USB MIDI) ~ FLUID Synth
+route ~ Keystation 49 MK3(USB MIDI) ~ EP-133 MIDI 1
+route ~ LoChord ~ FLUID Synth
+route ~ SEQTRAK MIDI 1 ~ EP-133 MIDI 1
+mutes 1 2 3 4 5 6 7 8 9 10
+route ~ Reaper Clock ~ EP-133 MIDI 1
+route ~ Reaper Clock ~ SEQTRAK MIDI 1
+art ~ "FluidSynth:output_FR" ~ "MobilePre:playback_FR"
+sqtmutes
+art ~ "REAPER:out1" ~ "MobilePre:playback_FL"
+art ~ "REAPER:out2" ~ "MobilePre:playback_FR"
+inst 7 1 008 025
+inst 2 1 000 033
+inst 4 1 000 118
+inst 6 1 128 000
+inst 5 1 000 018
+inst 1 1 008 025
+inst 3 1 008 025
+inst 16 1 008 025
+chansel 16
+fntsel 1
+art ~ "MobilePre:capture_FL" ~ "REAPER:in1"
+art ~ "MobilePre:capture_FR" ~ "REAPER:in2"
+levels 2 63 63 63 32 1 7 11 1 5 0 63 63 63 63 4

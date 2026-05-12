@@ -6,7 +6,7 @@ import json
 
 MONITOR = False
 
-def see(sane: bool = False) -> list[str]:
+def see(sane: bool = False) -> list[str]|list[tuple[str,str]]:
     try:
         data = subprocess.check_output('pw-link -l | grep Midi', shell=True).decode().split('\n')
     except subprocess.CalledProcessError:
@@ -17,11 +17,11 @@ def see(sane: bool = False) -> list[str]:
             data[i] = ''
             data[i-1] = ''
         elif '|->' in line:
-            data[i] = ' ~ ' + line.split(   ":(playback"   ,1)[1].split(' ',1)[1]
+            data[i] = ' ~ ' + line.split(   ":"   ,1)[-1].split(' (',1)[0].split('Client')[-1]
             if 'Synth input port' in data[i]:
                 data[i] = " ~ fluid"
         elif line != '' and "capture" in line:
-            data[i] = line.split(   ":(capture"   ,1)[1].split(' ',1)[1]
+            data[i] = line.split(   ":"   ,1)[-1].split(' (',1)[0].split('Client')[-1]
     while '' in data:
         data.remove('')
 
@@ -39,7 +39,14 @@ def see(sane: bool = False) -> list[str]:
     while '' in data:
         data.remove('')
 
+    if sane:
+        d_data = []
+        for i in data:
+            d_data.append(tuple(i.split(' -> ')))
+        return d_data
+
     return data
+
 
 def fs() -> bool:
     try:

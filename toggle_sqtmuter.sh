@@ -6,5 +6,6 @@ if test -e ".sqtmute_instructions"; then
     echo "muter stopped"
 else
     python3 ./muter.py &
+    disown
     echo "muter started"
 fi

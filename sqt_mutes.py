@@ -24,12 +24,6 @@ def save(mutes) -> None:
     with open("current.sav", 'w') as save_file:
         save_file.writelines(save_data)
 
-def ensure():
-    if not is_running():
-        subprocess.check_output("python3 ./muter.py &", shell=True)
-        time.sleep(0.5)
-        print("Running muter now")
-
 def instruct(inst: str, expect: bool=False) -> str:
     if expect:
         with open(out, 'w'):
@@ -54,7 +48,11 @@ def multi_mute(*muted_channels: int) -> None:
     muteline = 't ' + ' '.join(str(chan) for chan in muted_channels)
     print('SQT:',instruct(muteline, True))
 
-
+def ensure():
+    if not is_running():
+        subprocess.Popen("python3 ./muter.py", shell=True, start_new_session=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(0.5)
+        print("SQTMuter running")
 
 if __name__ == '__main__':
     # if not is_running():
